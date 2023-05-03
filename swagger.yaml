@@ -1,28 +1,28 @@
-swagger: "2.0"
+openapi: 3.0.1
 info:
   title: Mi Marketplace
-  version: "1.0.0"
-# Paths
+  version: 1.0.0
+servers:
+- url: /
 paths:
   /productos:
-    # GET: Listar productos
     get:
       summary: Listar productos
       description: Lista los productos disponibles en el marketplace
       parameters:
-        - name: limit
-          in: query
-          description: Límite de resultados por página (default 10, máximo 50)
-          type: integer
-          minimum: 1
+      - name: limit
+        in: query
+        description: Límite de resultados por página (default 10, máximo 50)
+        schema:
           maximum: 50
-          required: false
-        - name: offset
-          in: query
-          description: Número de resultados a saltar (default 0)
+          minimum: 1
           type: integer
+      - name: offset
+        in: query
+        description: Número de resultados a saltar (default 0)
+        schema:
           minimum: 0
-          required: false
+          type: integer
       responses:
         200:
           $ref: '#/components/schemas/ListaProductos'
@@ -30,111 +30,85 @@ paths:
           $ref: '#/components/responses/BadRequestError'
         401:
           $ref: '#/components/responses/UnauthorizedError'
-    # POST: Crear un nuevo producto
     post:
       summary: Crear un nuevo producto
       description: Crea un nuevo producto en el marketplace
-      parameters:
-      - in: "body"
-        requestBody:
-        required: true
+      requestBody:
         content:
-          application/json:
-        schema:
-          $ref: '#/components/schemas/ProductoInput'
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/ProductoInput'
+        required: true
       responses:
         201:
           description: Producto creado exitosamente
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Producto'
+          content: {}
         400:
           $ref: '#/components/responses/BadRequestError'
         401:
           $ref: '#/components/responses/UnauthorizedError'
+      x-codegen-request-body-name: null
   /productos/{producto_id}:
-    # GET: Obtener un producto por ID
     get:
       summary: Obtener un producto por ID
       description: Obtiene la información de un producto en particular
       parameters:
-        - name: producto_id
-          in: path
-          description: ID del producto a obtener
-          required: true
-          schema:
-            type: string
-
+      - name: producto_id
+        in: path
+        description: ID del producto a obtener
+        required: true
+        schema: {}
       responses:
         200:
           description: Información del producto solicitado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Producto'
+          content: {}
         400:
           $ref: '#/components/responses/BadRequestError'
         401:
           $ref: '#/components/responses/UnauthorizedError'
         404:
           $ref: '#/components/responses/NotFoundError'
-    # PUT: Actualizar un producto por ID
     put:
       summary: Actualizar un producto por ID
       description: Actualiza la información de un producto en particular
       parameters:
-        - name: producto_id
-          in: path
-          description: ID del producto a actualizar
-          required: true
-          schema:
-            type: string
-      requestBody:
+      - name: producto_id
+        in: path
+        description: ID del producto a actualizar
         required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProductoInput'
+        schema: {}
       responses:
         200:
           description: Producto actualizado exitosamente
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Producto'
+          content: {}
         400:
           $ref: '#/components/responses/BadRequestError'
         401:
           $ref: '#/components/responses/UnauthorizedError'
         404:
           $ref: '#/components/responses/NotFoundError'
-# DELETE: Eliminar un producto por ID
   /productos/{id}:
     delete:
       summary: Eliminar un producto por ID
       description: Elimina un producto existente por su ID.
       parameters:
-        - name: id
-          in: path
-          description: ID del producto a eliminar.
-          required: true
-          schema:
-            type: integer
-            format: int64
+      - name: id
+        in: path
+        description: ID del producto a eliminar.
+        required: true
+        schema: {}
       responses:
-        '204':
+        204:
           description: El producto se eliminó con éxito.
-        '400':
+          content: {}
+        400:
           $ref: '#/components/responses/BadRequestError'
-        '401':
+        401:
           $ref: '#/components/responses/UnauthorizedError'
-        '404':
+        404:
           $ref: '#/components/responses/NotFoundError'
-        '500':
+        500:
           $ref: '#/components/responses/InternalServerError'
-
-
 components:
   schemas:
     Producto:
@@ -185,28 +159,29 @@ components:
         nombre:
           type: string
           example: "Bicicleta de montaña"
-          required: true
         descripcion:
           type: string
           example: "Una bicicleta de montaña de alta calidad."
-          required: true
         categoria:
           type: string
           example: "Deportes y ocio"
-          required: true
         precio:
           type: number
           format: float
           example: 899.99
-          required: true
         vendedor:
           type: string
           example: "Juan Pérez"
-          required: true
         imagen:
           type: string
           example: "https://example.com/bicicleta.jpg"
-  
+      required:
+        - nombre
+        - descripcion
+        - categoria
+        - precio
+        - vendedor
+        
     Compra:
       type: object
       properties:
@@ -268,29 +243,31 @@ components:
       required:
         - code
         - message
-
-
   responses:
     Error:
       description: Error response
-      required: 
-        - code
-        - message
-      properties:
-        code:
-          type: integer
-          example: 400
-        message:
-          type: string
-          example: Bad Request
+      #required: 
+      #  - code
+      #  - message
+      #properties:
+      #  code:
+      #    type: string
+      #    description: Codigo de error
+      #  message:
+      #    type: string
+      #    description: Descripción del error
     UnauthorizedError:
       description: Unauthorized Error
-      schema:
-    #    $ref: "#/definitions/Error"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     NotFoundError:
       description: Not Found Error
-      schema:
-    #    $ref: "#/definitions/Error"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     BadRequestError:
       description: La solicitud no se puede procesar debido a que es inválida o está mal formada.
     InternalServerError:
@@ -301,18 +278,4 @@ components:
             $ref: '#/components/schemas/Error'
 
 
-
-# archivo schemas.yaml
-
-schemas:
-  ListaProductos:
-    type: object
-    required:
-      - productos
-    properties:
-      productos:
-        type: array
-        items:
-          $ref: "#/definitions/Producto"
-        description: Lista de productos
 
